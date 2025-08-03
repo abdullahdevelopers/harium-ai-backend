@@ -1,14 +1,17 @@
 {
   "name": "harium-ai-backend-openrouter",
   "version": "1.0.0",
+  "description": "Harium AI backend using OpenRouter API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "node-fetch": "^3.3.2"
+    "express": "^4.18.2",
+    "node-fetch": "^2.6.12"
   },
-  "type": "module"
+  "keywords": [],
+  "author": "Harium Dev",
+  "license": "ISC"
 }
