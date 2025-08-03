@@ -9,18 +9,20 @@ app.use(cors({
 app.use(express.json());
 
 const { GoogleGenerativeAI } = require('@google/generative-ai');
-const genAI = new GoogleGenerativeAI("AIzaSyC37PTY_mKxosK9iIjnMdyzHBpde0U1Eqw"); // ✅ NEW KEY
+const genAI = new GoogleGenerativeAI("AIzaSyC37PTY_mKxosK9iIjnMdyzHBpde0U1Eqw");  // ✅ Your new working key
 
 app.get('/', (req, res) => {
-  res.send('Harium AI backend is running with Gemini AI ✅');
+  res.send('✅ Harium AI backend is running with Gemini 1.5');
 });
 
 app.post('/ask', async (req, res) => {
   const { message } = req.body;
+
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-    const result = await model.generateContent(message);
-    const text = result.response.text();
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" }); // ✅ THIS is the correct model
+    const result = await model.generateContent([message]);
+    const response = await result.response;
+    const text = response.text();
     res.json({ answer: text });
   } catch (err) {
     console.error("Gemini Error:", err.message);
@@ -29,5 +31,5 @@ app.post('/ask', async (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Harium AI running on port ${port}`);
+  console.log(`🚀 Harium AI running on port ${port} using Gemini 1.5`);
 });
