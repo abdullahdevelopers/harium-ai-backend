@@ -3,29 +3,35 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
+require('dotenv').config();
+
 app.use(cors({
   origin: 'https://hariumai.netlify.app'
 }));
 app.use(express.json());
 
-const { GoogleGenerativeAI } = require('@google/generative-ai');
-const genAI = new GoogleGenerativeAI("AIzaSyC37PTY_mKxosK9iIjnMdyzHBpde0U1Eqw");
+const { Configuration, OpenAIApi } = require("openai");
+const configuration = new Configuration({
+  apiKey: process.env.OPENAI_API_KEY
+});
+const openai = new OpenAIApi(configuration);
 
 app.get('/', (req, res) => {
-  res.send('✅ Harium AI backend is running with Gemini 1.5');
+  res.send('✅ Harium AI backend running with GPT');
 });
 
 app.post('/ask', async (req, res) => {
   const { message } = req.body;
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
-    const result = await model.generateContent([message]);
-    const response = result.response;
-    const text = response.text();
-    res.json({ answer: text });
-  } catch (err) {
-    console.error("Gemini Error:", err.message);
-    res.json({ answer: "❌ Gemini AI error. Please try again." });
+    const completion = await openai.createChatCompletion({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: message }]
+    });
+    const reply = completion.data.choices[0].message.content;
+    res.json({ answer: reply });
+  } catch (error) {
+    console.error("OpenAI Error:", error.message);
+    res.json({ answer: "❌ OpenAI error. Please try again." });
   }
 });
 
