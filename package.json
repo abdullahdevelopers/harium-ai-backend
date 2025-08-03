@@ -1,5 +1,5 @@
 {
-  "name": "harium-ai-backend-gemini",
+  "name": "harium-ai-backend-openrouter",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
@@ -8,6 +8,7 @@
   "dependencies": {
     "express": "^4.18.2",
     "cors": "^2.8.5",
-    "@google/generative-ai": "^0.4.0"
-  }
+    "node-fetch": "^3.3.2"
+  },
+  "type": "module"
 }
