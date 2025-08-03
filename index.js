@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const fetch = require('node-fetch');
 const app = express();
 const port = process.env.PORT || 3000;
 
@@ -23,7 +24,7 @@ app.post('/ask', async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct",  // ✅ Updated working model
+        model: "mistralai/mistral-7b-instruct",
         messages: [
           { role: "user", content: message }
         ]
@@ -31,8 +32,14 @@ app.post('/ask', async (req, res) => {
     });
 
     const data = await response.json();
-    const reply = data.choices?.[0]?.message?.content || "❌ No reply from OpenRouter.";
-    res.json({ answer: reply });
+
+    const reply = data?.choices?.[0]?.message?.content;
+    if (reply) {
+      res.json({ answer: reply });
+    } else {
+      console.error("❌ No reply received from model");
+      res.json({ answer: "❌ No reply from OpenRouter. Please try again." });
+    }
 
   } catch (err) {
     console.error("OpenRouter Error:", err.message);
