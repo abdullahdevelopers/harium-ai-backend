@@ -3,38 +3,30 @@ const cors = require('cors');
 const app = express();
 const port = process.env.PORT || 3000;
 
-require('dotenv').config();
-
-app.use(cors({
-  origin: 'https://hariumai.netlify.app'
-}));
+app.use(cors({ origin: 'https://hariumai.netlify.app' }));
 app.use(express.json());
 
-const { Configuration, OpenAIApi } = require("openai");
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY
-});
-const openai = new OpenAIApi(configuration);
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI("AIzaSyDbeoxi3VeRiILEVTn2019hIlu-PViu2s0");
 
 app.get('/', (req, res) => {
-  res.send('✅ Harium AI backend running with GPT');
+  res.send('✅ Harium AI running with Gemini API');
 });
 
 app.post('/ask', async (req, res) => {
   const { message } = req.body;
   try {
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: message }]
-    });
-    const reply = completion.data.choices[0].message.content;
-    res.json({ answer: reply });
-  } catch (error) {
-    console.error("OpenAI Error:", error.message);
-    res.json({ answer: "❌ OpenAI error. Please try again." });
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+    const result = await model.generateContent([message]);
+    const response = await result.response;
+    const text = response.text();
+    res.json({ answer: text });
+  } catch (err) {
+    console.error("Gemini Error:", err.message);
+    res.json({ answer: "❌ Gemini AI error. Please try again." });
   }
 });
 
 app.listen(port, () => {
-  console.log(`🚀 Harium AI running on port ${port}`);
+  console.log(`🚀 Harium AI running on port ${port} with Gemini`);
 });
