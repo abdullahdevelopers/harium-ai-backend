@@ -9,7 +9,7 @@ app.use(express.json());
 const apiKey = "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";
 
 app.get('/', (req, res) => {
-  res.send('✅ Harium AI backend running on OpenRouter API');
+  res.send('✅ Harium AI backend running on OpenRouter (Mistral)');
 });
 
 app.post('/ask', async (req, res) => {
@@ -23,7 +23,7 @@ app.post('/ask', async (req, res) => {
         "Content-Type": "application/json"
       },
       body: JSON.stringify({
-        model: "openchat/openchat-3.5-1210",  // ✅ You can change model later
+        model: "mistralai/mistral-7b-instruct",  // ✅ Updated working model
         messages: [
           { role: "user", content: message }
         ]
