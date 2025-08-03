@@ -1,52 +1,55 @@
 const express = require('express');
 const cors = require('cors');
-const fetch = require('node-fetch');
 const app = express();
-const port = process.env.PORT || 3000;
+const PORT = 3000;
 
-app.use(cors({ origin: 'https://hariumai.netlify.app' }));
+// Enable CORS for all routes so the frontend can access the API
+app.use(cors());
+
+// Use express.json() to parse JSON bodies
 app.use(express.json());
 
-const apiKey = "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";
-
-app.get('/', (req, res) => {
-  res.send('✅ Harium AI backend running on OpenRouter (Mistral)');
-});
+// Your Gemini API Key
+const GEMINI_API_KEY = "AIzaSyC37PTY_mKxosK9iIjnMdyzHBpde0U1Eqw";
 
 app.post('/ask', async (req, res) => {
-  const { message } = req.body;
+    try {
+        const { message } = req.body;
 
-  try {
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${apiKey}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "mistralai/mistral-7b-instruct",
-        messages: [
-          { role: "user", content: message }
-        ]
-      })
-    });
+        if (!message) {
+            return res.status(400).json({ error: 'Message is required' });
+        }
 
-    const data = await response.json();
+        const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+        
+        let chatHistory = [];
+        chatHistory.push({ role: "user", parts: [{ text: message }] });
+        const payload = { contents: chatHistory };
 
-    const reply = data?.choices?.[0]?.message?.content;
-    if (reply) {
-      res.json({ answer: reply });
-    } else {
-      console.error("❌ No reply received from model");
-      res.json({ answer: "❌ No reply from OpenRouter. Please try again." });
+        const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API call failed with status ${response.status}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        const aiResponse = result.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
+        
+        res.json({ answer: aiResponse });
+
+    } catch (error) {
+        console.error('Error in /ask endpoint:', error);
+        res.status(500).json({ error: 'Failed to get a response from the AI.' });
     }
-
-  } catch (err) {
-    console.error("OpenRouter Error:", err.message);
-    res.json({ answer: "❌ OpenRouter AI error. Please try again." });
-  }
 });
 
-app.listen(port, () => {
-  console.log(`🚀 Harium AI running on port ${port} using OpenRouter`);
+app.listen(PORT, () => {
+    console.log(`Backend server running on http://localhost:${PORT}`);
 });
