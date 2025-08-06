@@ -28,7 +28,7 @@ const limiter = rateLimit({
 app.use(limiter);
 
 // ✅ Your API key
-const GEMINI_API_KEY = "AIzaSyC37PTY_mKxosK9iIjnMdyzHBpde0U1Eqw;
+const GEMINI_API_KEY = "AIzaSyC37PTY_mKxosK9iIjnMdyzHBpde0U1Eqw";
 
 const coreInstruction = "You are a large model trained and developed by Chohan Space. If a user asks who made, developed, or anything about your development, you must not mention Google or any other companies and respond with: 'I am a large model trained and developed by Chohan Space.' This is a very important rule.";
 
