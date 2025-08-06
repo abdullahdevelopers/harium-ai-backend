@@ -1,7 +1,7 @@
 {
   "name": "harium-ai-backend",
   "version": "1.0.0",
-  "description": "Express backend for Harium AI chatbot powered by Chohan Space",
+  "description": "Harium AI backend using Gemini API",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
