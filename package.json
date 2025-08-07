@@ -1,19 +1,16 @@
 {
-  "name": "harium-ai-backend",
+  "name": "harium-backend",
   "version": "1.0.0",
-  "description": "Backend for Harium AI using Google Gemini API",
-  "type": "module",
+  "description": "Harium AI backend powered by Gemini API",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "@google/generative-ai": "^0.5.0",
-    "express": "^4.18.2",
+    "@google/generative-ai": "^0.6.0",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5"
-  },
-  "engines": {
-    "node": "18.x"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
   }
 }
