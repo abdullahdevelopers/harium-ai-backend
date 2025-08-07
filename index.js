@@ -1,17 +1,15 @@
 import express from 'express';
 import cors from 'cors';
-import dotenv from 'dotenv';
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // --- 1. Initial Setup ---
-dotenv.config(); // Load environment variables from .env file
 const app = express();
 
 // --- 2. Security: Configure CORS ---
-// This policy allows your frontend to connect.
 const allowedOrigins = ['https://chat.thechohan.space'];
 const corsOptions = {
   origin: (origin, callback) => {
+    // Allows your website and local testing (no origin) to connect.
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
@@ -23,12 +21,12 @@ const corsOptions = {
 app.use(cors(corsOptions));
 app.use(express.json());
 
-// --- 3. AI Initialization ---
-// Get the API Key securely from the .env file
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// --- 3. AI Initialization with Hardcoded Key ---
+// --- SECURITY WARNING: API Key is exposed here. ---
+const GEMINI_API_KEY = "AIzaSyApGQHkupV6O7bhiMvN4p5SBwnANvMgsf8";
 
 if (!GEMINI_API_KEY) {
-  console.error("FATAL ERROR: GEMINI_API_KEY is not defined in your .env file.");
+  console.error("API Key is missing from the code.");
   process.exit(1); // Stop the server if the key is missing
 }
 
@@ -38,7 +36,6 @@ const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 // --- 4. AI Response Logic ---
 const getRealAIResponse = async (question) => {
   try {
-    // The persona prompt sent to the AI model
     const prompt = `You are Harium AI, a large language model trained by the team at Chohan Space. You must not mention any other company, especially Google. Your entire purpose is to be a helpful assistant under the Harium AI identity.
 
 User's question: "${question}"`;
