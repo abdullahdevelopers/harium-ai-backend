@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 
 // ---------------- CONFIG ----------------
 const GEMINI_API_KEY = "AIzaSyApGQHkupV6O7bhiMvN4p5SBwnANvMgsf8";
-const MONGODB_URI = "mongodb+srv://Abdullahchohan:abdullah36572515@cluster0.dz9g34v.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+const MONGODB_URI = "mongodb+srv://Abdullahchohan:abdullah36572515@cluster0.dz9g34v.mongodb.net/chohanai?retryWrites=true&w=majority&appName=Cluster0";
 
 // --------------- INIT -------------------
 const app = express();
