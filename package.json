@@ -1,16 +1,15 @@
 {
-  "name": "harium-ai-backend",
+  "name": "beatif-backend",
   "version": "1.0.0",
-  "description": "Harium AI backend with Gemini API and MongoDB",
-  "main": "index.js",
+  "main": "server.js",
   "type": "module",
-  "scripts": {
-    "start": "node index.js"
-  },
   "dependencies": {
-    "@google/generative-ai": "^0.3.2",
+    "axios": "^1.6.7",
     "cors": "^2.8.5",
-    "express": "^4.18.2",
-    "mongoose": "^8.3.0"
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2"
+  },
+  "scripts": {
+    "start": "node server.js"
   }
 }
