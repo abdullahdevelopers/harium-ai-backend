@@ -1,71 +1,71 @@
 const express = require("express");
-const mongoose = require("mongoose");
+const fetch = require("node-fetch");
 const cors = require("cors");
-const axios = require("axios");
-require("dotenv").config();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// MongoDB Connect
-mongoose.connect(process.env.MONGO_URI)
-    .then(() => console.log("✅ MongoDB Connected"))
-    .catch(err => console.error("❌ MongoDB Error:", err));
+// YT API key 
+const API_KEY = "AIzaSyDUm69fGERkDUR5hQiERkYFp3JFh7nRFE0";
 
-// Playlist Schema
-const playlistSchema = new mongoose.Schema({
-    name: String,
-    songs: [Object] // Store song details as objects
-});
-const Playlist = mongoose.model("Playlist", playlistSchema);
+// Search songs endpoint
+app.get("/search", async (req, res) => {
+  const query = req.query.q;
+  if (!query) return res.status(400).json({ error: "Query required" });
 
-// Search Songs from YouTube
-app.get("/api/search", async (req, res) => {
-    const query = req.query.q;
-    if (!query) return res.status(400).json({ error: "Missing search query" });
+  try {
+    const ytRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(
+        query
+      )}&key=${API_KEY}`
+    );
+    const data = await ytRes.json();
 
-    try {
-        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${process.env.YOUTUBE_API_KEY}`;
-        const response = await axios.get(url);
+    const results = data.items.map(item => ({
+      title: item.snippet.title,
+      videoId: item.id.videoId
+    }));
 
-        const songs = response.data.items.map(item => ({
-            videoId: item.id.videoId,
-            title: item.snippet.title,
-            thumbnail: item.snippet.thumbnails.default.url
-        }));
-
-        res.json(songs);
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "YouTube API error" });
-    }
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch from YouTube" });
+  }
 });
 
-// Save Playlist
-app.post("/api/playlist", async (req, res) => {
-    const { name, songs } = req.body;
-    if (!name || !songs) return res.status(400).json({ error: "Missing data" });
+// Trending songs endpoint
+app.get("/trending", async (req, res) => {
+  try {
+    const ytRes = await fetch(
+      `https://www.googleapis.com/youtube/v3/videos?part=snippet&chart=mostPopular&regionCode=IN&videoCategoryId=10&maxResults=10&key=${API_KEY}`
+    );
+    const data = await ytRes.json();
 
-    try {
-        const playlist = new Playlist({ name, songs });
-        await playlist.save();
-        res.json({ message: "Playlist saved successfully" });
-    } catch (error) {
-        res.status(500).json({ error: "Database error" });
-    }
+    const results = data.items.map(item => ({
+      title: item.snippet.title,
+      videoId: item.id
+    }));
+
+    res.json(results);
+  } catch (err) {
+    res.status(500).json({ error: "Failed to fetch trending songs" });
+  }
 });
 
-// Get Playlists
-app.get("/api/playlist", async (req, res) => {
-    try {
-        const playlists = await Playlist.find();
-        res.json(playlists);
-    } catch (error) {
-        res.status(500).json({ error: "Database error" });
-    }
+// Playlist system (simple in-memory storage for now)
+let playlist = [];
+
+app.get("/playlist", (req, res) => {
+  res.json(playlist);
 });
 
-app.listen(process.env.PORT || 10000, () => {
-    console.log(`🚀 Server running on port ${process.env.PORT || 10000}`);
+app.post("/playlist/add", (req, res) => {
+  const { videoId, title } = req.body;
+  if (!videoId || !title) return res.status(400).json({ error: "Missing data" });
+
+  playlist.push({ videoId, title });
+  res.json({ success: true });
 });
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
