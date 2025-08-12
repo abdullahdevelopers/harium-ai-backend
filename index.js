@@ -1,68 +1,71 @@
 const express = require("express");
-const request = require("request");
+const mongoose = require("mongoose");
 const cors = require("cors");
-const dotenv = require("dotenv");
-const querystring = require("querystring");
+const axios = require("axios");
+require("dotenv").config();
 
-dotenv.config();
 const app = express();
 app.use(cors());
+app.use(express.json());
 
-const CLIENT_ID = process.env.CLIENT_ID;
-const CLIENT_SECRET = process.env.CLIENT_SECRET;
-const REDIRECT_URI = process.env.REDIRECT_URI;
-const FRONTEND_URI = process.env.FRONTEND_URI;
+// MongoDB Connect
+mongoose.connect(process.env.MONGO_URI)
+    .then(() => console.log("✅ MongoDB Connected"))
+    .catch(err => console.error("❌ MongoDB Error:", err));
 
-// Step 1: Login route
-app.get("/login", (req, res) => {
-  const scope = "user-read-private user-read-email";
-  const authUrl = "https://accounts.spotify.com/authorize?" +
-    querystring.stringify({
-      response_type: "code",
-      client_id: CLIENT_ID,
-      scope: scope,
-      redirect_uri: REDIRECT_URI
-    });
-  res.redirect(authUrl);
+// Playlist Schema
+const playlistSchema = new mongoose.Schema({
+    name: String,
+    songs: [Object] // Store song details as objects
 });
+const Playlist = mongoose.model("Playlist", playlistSchema);
 
-// Step 2: Callback from Spotify
-app.get("/callback", (req, res) => {
-  const code = req.query.code || null;
+// Search Songs from YouTube
+app.get("/api/search", async (req, res) => {
+    const query = req.query.q;
+    if (!query) return res.status(400).json({ error: "Missing search query" });
 
-  const authOptions = {
-    url: "https://accounts.spotify.com/api/token",
-    form: {
-      code: code,
-      redirect_uri: REDIRECT_URI,
-      grant_type: "authorization_code"
-    },
-    headers: {
-      Authorization: "Basic " + Buffer.from(CLIENT_ID + ":" + CLIENT_SECRET).toString("base64")
-    },
-    json: true
-  };
+    try {
+        const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${process.env.YOUTUBE_API_KEY}`;
+        const response = await axios.get(url);
 
-  request.post(authOptions, (error, response, body) => {
-    if (!error && response.statusCode === 200) {
-      const access_token = body.access_token;
-      res.redirect(`${FRONTEND_URI}#access_token=${access_token}`);
-    } else {
-      res.send("Error getting token");
+        const songs = response.data.items.map(item => ({
+            videoId: item.id.videoId,
+            title: item.snippet.title,
+            thumbnail: item.snippet.thumbnails.default.url
+        }));
+
+        res.json(songs);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "YouTube API error" });
     }
-  });
 });
 
-// Step 3: Protected API example
-app.get("/protected", (req, res) => {
-  const token = req.query.access_token;
-  if (!token) {
-    return res.status(401).send("Unauthorized");
-  }
-  res.send("You are logged in!");
+// Save Playlist
+app.post("/api/playlist", async (req, res) => {
+    const { name, songs } = req.body;
+    if (!name || !songs) return res.status(400).json({ error: "Missing data" });
+
+    try {
+        const playlist = new Playlist({ name, songs });
+        await playlist.save();
+        res.json({ message: "Playlist saved successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Database error" });
+    }
 });
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
+// Get Playlists
+app.get("/api/playlist", async (req, res) => {
+    try {
+        const playlists = await Playlist.find();
+        res.json(playlists);
+    } catch (error) {
+        res.status(500).json({ error: "Database error" });
+    }
+});
+
+app.listen(process.env.PORT || 10000, () => {
+    console.log(`🚀 Server running on port ${process.env.PORT || 10000}`);
 });
